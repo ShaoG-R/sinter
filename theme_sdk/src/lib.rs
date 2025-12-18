@@ -44,25 +44,39 @@ impl ThemeManager {
         let theme = self.get_theme(name)?;
 
         // 2. Load CSS dynamically
+        // 2. Load CSS dynamically
         let window = window().expect("no global `window` exists");
         let document = window.document().expect("should have a document on window");
-        let head = document.head().expect("document should have a head");
 
         let link_id = "theme-css";
         let link_el = document.get_element_by_id(link_id);
 
-        let url = format!("themes/{}/default.css", name);
+        let url = format!("/themes/{}/default.css", name);
+        leptos::logging::log!("Switching theme CSS to: {}", url);
 
         if let Some(link) = link_el {
-            let link: HtmlLinkElement = link.unchecked_into();
-            link.set_href(&url);
+            match link.dyn_into::<HtmlLinkElement>() {
+                Ok(link) => {
+                    link.set_href(&url);
+                }
+                Err(_) => {
+                    leptos::logging::error!(
+                        "Element with id 'theme-css' is not an HtmlLinkElement!"
+                    );
+                }
+            }
         } else {
-            let link = document.create_element("link").unwrap();
+            let head = document.head().expect("document should have a head");
+            let link = document
+                .create_element("link")
+                .expect("failed to create link element");
             let link: HtmlLinkElement = link.unchecked_into();
             link.set_rel("stylesheet");
             link.set_href(&url);
             link.set_id(link_id);
-            head.append_child(&link).unwrap();
+            if let Err(e) = head.append_child(&link) {
+                leptos::logging::error!("Failed to append child: {:?}", e);
+            }
         }
 
         // 3. Return the theme so the app can update its state

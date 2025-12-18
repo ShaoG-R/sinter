@@ -17,9 +17,9 @@ pub fn Home() -> impl IntoView {
                     let mut posts: Vec<SitePostMetadata> = site_data.posts.values().cloned().collect();
                     posts.sort_by(|a, b| b.metadata.date.cmp(&a.metadata.date));
 
-                    state.theme.get().render_home(posts, &site_data)
+                    state.theme.get_untracked().render_home(posts, &site_data)
                 },
-                Err(e) => state.theme.get().render_error(e),
+                Err(e) => state.theme.get_untracked().render_error(e),
             })
         }}
     }
@@ -68,12 +68,12 @@ pub fn PostView() -> impl IntoView {
     });
 
     view! {
-        <Suspense fallback=move || theme_fb.get().render_post_loading()>
+        <Suspense fallback=move || theme_fb.get_untracked().render_post_loading()>
             {move || {
                 match post_resource.get() {
-                    Some(Some(post)) => theme_content.get().render_post(post),
-                    Some(None) => theme_content.get().render_post_not_found(),
-                    None => theme_content.get().render_post_loading(),
+                    Some(Some(post)) => theme_content.get_untracked().render_post(post),
+                    Some(None) => theme_content.get_untracked().render_post_not_found(),
+                    None => theme_content.get_untracked().render_post_loading(),
                 }
             }}
         </Suspense>

@@ -81,21 +81,28 @@ impl Theme for DefaultTheme {
                                 </div>
                                 <ul tabindex="0" class="menu dropdown-content z-[2] p-2 shadow-2xl bg-black/50 backdrop-blur-xl rounded-box w-52 mt-4 border border-white/10 text-white">
                                     {
-                                    let state = use_context::<sinter_theme_sdk::GlobalState>().expect("GlobalState missing");
-                                    state.manager.get_available_themes().into_iter().map(|name| {
-                                        // We need to clone state for the closure because it's FnMut/Fn and we can't move state
-                                        let state = state.clone();
+                                    let state_opt = use_context::<sinter_theme_sdk::GlobalState>();
+                                    if let Some(state) = state_opt {
                                         view! {
-                                            <li>
-                                                <a 
-                                                    class="hover:bg-white/10 hover:text-white rounded-lg transition-colors"
-                                                    on:click=move |_| state.switch_theme(name)
-                                                >
-                                                    {name}
-                                                </a>
-                                            </li>
-                                        }
-                                    }).collect_view()
+                                            <>{
+                                                state.manager.get_available_themes().into_iter().map(|name| {
+                                                    let state = state.clone();
+                                                    view! {
+                                                        <li>
+                                                            <a 
+                                                                class="hover:bg-white/10 hover:text-white rounded-lg transition-colors"
+                                                                on:click=move |_| state.switch_theme(name)
+                                                            >
+                                                                {name}
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                }).collect_view()
+                                            }</>
+                                        }.into_any()
+                                    } else {
+                                        view! { <li><span class="text-error">"Error: Context Missing"</span></li> }.into_any()
+                                    }
                                     }
                                 </ul>
                             </div>
