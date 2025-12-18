@@ -125,83 +125,11 @@ impl Theme for DefaultTheme {
 
     fn render_home(&self, posts: Vec<SitePostMetadata>, site_data: &SiteData) -> AnyView {
         // 移植 styles.css
-        let liquid_styles = r#"
-            /* LIQUID GLASS STYLES */
-            .liquidGlass-wrapper {
-                position: relative;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-weight: 800;
-                
-                /* Adaptive padding for dynamic title length */
-                padding: 3rem 4rem;
-                border-radius: 2rem;
 
-                color: white;
-                cursor: default;
-
-                /* Premium Shadow from Reference */
-                box-shadow: 
-                    0 15px 35px rgba(0, 0, 0, 0.2), 
-                    0 5px 15px rgba(0, 0, 0, 0.1),
-                    inset 0 0 2px rgba(255, 255, 255, 0.2);
-                    
-                transition: transform 0.3s ease;
-            }
-
-            .liquidGlass-wrapper:hover {
-                transform: translateY(-5px) scale(1.02);
-            }
-
-            .liquidGlass-effect {
-                position: absolute;
-                z-index: 0;
-                inset: 0;
-                border-radius: 2rem; /* Matches wrapper */
-                
-                backdrop-filter: blur(12px); /* Higher blur for frosted feel */
-                -webkit-backdrop-filter: blur(12px);
-                
-                filter: url(#glass-distortion);
-                opacity: 0.9;
-                isolation: isolate;
-                pointer-events: none;
-            }
-
-            .liquidGlass-tint {
-                z-index: 1;
-                position: absolute;
-                inset: 0;
-                border-radius: 2rem;
-                
-                background: rgba(255, 255, 255, 0.05); /* Subtle tint */
-                border: 1px solid rgba(255, 255, 255, 0.2); /* Glass border */
-            }
-
-            .liquidGlass-shine {
-                position: absolute;
-                inset: 0;
-                z-index: 2;
-                border-radius: 2rem;
-                overflow: hidden;
-                pointer-events: none;
-                
-                /* Refined Shine */
-                box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.3),
-                            inset -1px -1px 1px 1px rgba(255, 255, 255, 0.1);
-            }
-
-            .liquidGlass-text {
-                z-index: 3;
-                position: relative;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            }
-        "#;
 
         view! {
             <div class="flex flex-col w-full">
-                <style>{liquid_styles}</style>
+
 
                 // Hero Section
                 <div class="hero min-h-screen relative">

@@ -125,83 +125,11 @@ impl Theme for DefaultLightTheme {
 
     fn render_home(&self, posts: Vec<SitePostMetadata>, site_data: &SiteData) -> AnyView {
         // 移植 styles.css
-        let liquid_styles = r#"
-            /* LIQUID GLASS STYLES - LIGHT */
-            .liquidGlass-wrapper {
-                position: relative;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-weight: 800;
-                
-                /* Adaptive padding for dynamic title length */
-                padding: 3rem 4rem;
-                border-radius: 2rem;
 
-                color: #1e293b; /* Slate 800 */
-                cursor: default;
-
-                /* Premium Shadow - Light */
-                box-shadow: 
-                    0 15px 35px rgba(0, 0, 0, 0.08), 
-                    0 5px 15px rgba(0, 0, 0, 0.05),
-                    inset 0 0 2px rgba(255, 255, 255, 0.8);
-                    
-                transition: transform 0.3s ease;
-            }
-
-            .liquidGlass-wrapper:hover {
-                transform: translateY(-5px) scale(1.02);
-            }
-
-            .liquidGlass-effect {
-                position: absolute;
-                z-index: 0;
-                inset: 0;
-                border-radius: 2rem; /* Matches wrapper */
-                
-                backdrop-filter: blur(12px); 
-                -webkit-backdrop-filter: blur(12px);
-                
-                filter: url(#glass-distortion);
-                opacity: 0.9;
-                isolation: isolate;
-                pointer-events: none;
-            }
-
-            .liquidGlass-tint {
-                z-index: 1;
-                position: absolute;
-                inset: 0;
-                border-radius: 2rem;
-                
-                background: rgba(255, 255, 255, 0.3); /* Lighter tint */
-                border: 1px solid rgba(255, 255, 255, 0.6); /* White border */
-            }
-
-            .liquidGlass-shine {
-                position: absolute;
-                inset: 0;
-                z-index: 2;
-                border-radius: 2rem;
-                overflow: hidden;
-                pointer-events: none;
-                
-                /* Refined Shine */
-                box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.9),
-                            inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
-            }
-
-            .liquidGlass-text {
-                z-index: 3;
-                position: relative;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }
-        "#;
 
         view! {
             <div class="flex flex-col w-full">
-                <style>{liquid_styles}</style>
+
 
                 // Hero Section
                 <div class="hero min-h-screen relative">
@@ -411,13 +339,13 @@ fn NodeRenderer(node: ContentNode) -> impl IntoView {
         },
         ContentNode::List { ordered, children } => {
             if ordered {
-                view! { <ol class="list-decimal list-inside mb-6 pl-4 space-y-2 marker:text-primary">{children.into_iter().map(|c| view! { <NodeRenderer node=c /> }).collect_view()}</ol> }.into_any()
+                view! { <ol class="list-decimal list-inside mb-6 pl-4 space-y-2 marker:text-primary text-slate-700">{children.into_iter().map(|c| view! { <NodeRenderer node=c /> }).collect_view()}</ol> }.into_any()
             } else {
-                view! { <ul class="list-disc list-inside mb-6 pl-4 space-y-2 marker:text-primary">{children.into_iter().map(|c| view! { <NodeRenderer node=c /> }).collect_view()}</ul> }.into_any()
+                view! { <ul class="list-disc list-inside mb-6 pl-4 space-y-2 marker:text-primary text-slate-700">{children.into_iter().map(|c| view! { <NodeRenderer node=c /> }).collect_view()}</ul> }.into_any()
             }
         },
         ContentNode::ListItem { children } => view! {
-             <li>{children.into_iter().map(|c| view! { <NodeRenderer node=c /> }).collect_view()}</li>
+             <li class="text-slate-700">{children.into_iter().map(|c| view! { <NodeRenderer node=c /> }).collect_view()}</li>
         }.into_any(),
         ContentNode::BlockQuote { children } => view! {
             <blockquote class="border-l-4 border-primary/50 pl-6 py-4 italic bg-slate-100 rounded-r-lg my-8 text-slate-700">
