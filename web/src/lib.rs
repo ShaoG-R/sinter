@@ -1,7 +1,6 @@
 mod app;
 mod components;
 mod pages;
-mod state;
 
 use app::App;
 use leptos::mount::mount_to_body;

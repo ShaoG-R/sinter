@@ -6,6 +6,8 @@ use leptos_router::{
 };
 
 use crate::components::Layout;
+use crate::pages::ArchivePostView;
+use crate::pages::Archives;
 use crate::pages::Home;
 use crate::pages::PostView;
 
@@ -36,7 +38,9 @@ pub fn App() -> impl IntoView {
                 }>
                     <Routes fallback=|| view! { "404 - Not Found" }>
                         <Route path=path!("/") view=Home />
+                        <Route path=path!("/archives") view=Archives />
                         <Route path=path!("/posts/:slug") view=PostView />
+                        <Route path=path!("/archives/posts/:slug") view=ArchivePostView />
                     </Routes>
                 </Suspense>
             </Layout>

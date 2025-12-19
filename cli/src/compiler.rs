@@ -30,9 +30,15 @@ struct HomeSection {
     pub posts_per_page: Option<usize>,
 }
 
-pub fn compile(input_dir: &Path, output_dir: &Path, config_path: &Path) -> Result<()> {
+pub fn compile(
+    posts_dir: &Path,
+    archives_dir: &Path,
+    output_dir: &Path,
+    config_path: &Path,
+) -> Result<()> {
     info!("Starting compilation...");
-    info!("Input directory: {:?}", input_dir);
+    info!("Posts directory: {:?}", posts_dir);
+    info!("Archives directory: {:?}", archives_dir);
 
     // 1. Initialization
     let config = load_config(config_path)?;
@@ -47,16 +53,38 @@ pub fn compile(input_dir: &Path, output_dir: &Path, config_path: &Path) -> Resul
     info!("Temporary directory created at: {:?}", temp_path);
 
     // 2. Process Posts
-    let mut posts = load_all_posts(input_dir);
+    let mut posts = load_posts_from_dir(posts_dir, "posts");
     posts.sort_by(|a, b| b.0.metadata.date.cmp(&a.0.metadata.date));
     info!("Processed {} posts.", posts.len());
 
-    // 3. Generation
+    // 3. Process Archives
+    let mut archives = if archives_dir.exists() {
+        load_posts_from_dir(archives_dir, "archives")
+    } else {
+        info!(
+            "Archives directory not found at {:?}, skipping archives.",
+            archives_dir
+        );
+        Vec::new()
+    };
+    archives.sort_by(|a, b| b.0.metadata.date.cmp(&a.0.metadata.date));
+    info!("Processed {} archives.", archives.len());
+
+    // 4. Generation
     write_post_files(&posts, temp_path)?;
-    generate_pages(&posts, temp_path, posts_per_page)?;
+    write_post_files(&archives, temp_path)?;
+
+    // Pages for Home (Posts) -> sinter_data/pages
+    let home_pages_dir = temp_path.join(PAGES_DIR);
+    generate_pages(&posts, &home_pages_dir, posts_per_page)?;
+
+    // Pages for Archives -> sinter_data/archives/pages
+    let archive_pages_dir = temp_path.join("archives").join(PAGES_DIR);
+    generate_pages(&archives, &archive_pages_dir, posts_per_page)?;
+
     write_site_metadata(posts.len(), &config, posts_per_page, temp_path)?;
 
-    // 4. Deployment
+    // 5. Deployment
     deploy_to_output(temp_path, output_dir)?;
 
     info!("Compilation finished successfully!");
@@ -76,14 +104,14 @@ fn load_config(path: &Path) -> Result<SiteConfig> {
     Ok(config)
 }
 
-fn load_all_posts(input_dir: &Path) -> Vec<(Post, String)> {
+fn load_posts_from_dir(input_dir: &Path, prefix: &str) -> Vec<(Post, String)> {
     let entries: Vec<_> = WalkDir::new(input_dir)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.path().extension().map_or(false, |ext| ext == "md"))
         .collect();
 
-    info!("Found {} markdown files.", entries.len());
+    info!("Found {} markdown files in {:?}.", entries.len(), input_dir);
 
     entries
         .par_iter()
@@ -92,7 +120,7 @@ fn load_all_posts(input_dir: &Path) -> Vec<(Post, String)> {
             let relative_path = path.strip_prefix(input_dir).unwrap_or(path);
 
             // Construct the destination path for the JSON file
-            let mut dest_rel_path = PathBuf::from("posts");
+            let mut dest_rel_path = PathBuf::from(prefix);
             dest_rel_path.push(relative_path);
             dest_rel_path.set_extension("json");
 
@@ -161,11 +189,10 @@ fn write_post_files(posts: &[(Post, String)], output_dir: &Path) -> Result<()> {
 
 fn generate_pages(
     posts: &[(Post, String)],
-    output_dir: &Path,
+    pages_output_dir: &Path,
     posts_per_page: usize,
 ) -> Result<()> {
-    let pages_dir = output_dir.join(PAGES_DIR);
-    fs::create_dir_all(&pages_dir).context("Failed to create pages directory")?;
+    fs::create_dir_all(pages_output_dir).context("Failed to create pages directory")?;
 
     for (i, chunk) in posts.chunks(posts_per_page).enumerate() {
         let page_num = i + 1;
@@ -194,12 +221,15 @@ fn generate_pages(
 
         let page_json =
             serde_json::to_string(&page_data).context("Failed to serialize page data")?;
-        fs::write(pages_dir.join(format!("page_{}.json", page_num)), page_json)
-            .context("Failed to write page json")?;
+        fs::write(
+            pages_output_dir.join(format!("page_{}.json", page_num)),
+            page_json,
+        )
+        .context("Failed to write page json")?;
     }
 
     let total_pages = (posts.len() + posts_per_page - 1) / posts_per_page;
-    info!("Generated {} pages in {:?}", total_pages, pages_dir);
+    info!("Generated {} pages in {:?}", total_pages, pages_output_dir);
 
     Ok(())
 }

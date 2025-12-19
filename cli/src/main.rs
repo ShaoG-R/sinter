@@ -22,9 +22,13 @@ enum Commands {
 
 #[derive(Args, Debug)]
 struct BuildArgs {
-    /// Input directory
-    #[arg(short, long, default_value = "./posts")]
-    input: PathBuf,
+    /// Path to posts directory
+    #[arg(short, long = "posts", default_value = "./posts")]
+    posts_dir: PathBuf,
+
+    /// Path to archives directory
+    #[arg(short, long = "archives", default_value = "./archives")]
+    archives_dir: PathBuf,
 
     /// Output directory
     #[arg(short, long, default_value = "./web/sinter_data")]
@@ -72,11 +76,17 @@ fn main() -> Result<()> {
                 );
             }
 
-            info!("Input directory: {:?}", args.input);
+            info!("Posts directory: {:?}", args.posts_dir);
+            info!("Archives directory: {:?}", args.archives_dir);
             info!("Output directory: {:?}", args.output);
 
             // Implement core compilation logic here
-            compiler::compile(&args.input, &args.output, &args.config)?;
+            compiler::compile(
+                &args.posts_dir,
+                &args.archives_dir,
+                &args.output,
+                &args.config,
+            )?;
         }
     }
 

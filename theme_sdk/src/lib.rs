@@ -9,6 +9,7 @@ use web_sys::{HtmlLinkElement, window};
 
 pub trait Theme: Send + Sync + std::fmt::Debug {
     fn render_home(&self) -> AnyView;
+    fn render_archive(&self) -> AnyView;
     fn render_post(&self, post: Post) -> AnyView;
     fn render_post_loading(&self) -> AnyView;
     fn render_loading(&self) -> AnyView;
@@ -127,6 +128,23 @@ pub async fn fetch_page_data(page: usize) -> Result<PageData, String> {
     if !resp.ok() {
         return Err(format!(
             "Failed to fetch page data: {} {}",
+            resp.status(),
+            resp.status_text()
+        ));
+    }
+
+    resp.json::<PageData>()
+        .await
+        .map_err(|e| format!("JSON Parse Error: {}", e))
+}
+
+pub async fn fetch_archive_page_data(page: usize) -> Result<PageData, String> {
+    let url = format!("/sinter_data/archives/pages/page_{}.json", page);
+    let resp = Request::get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.ok() {
+        return Err(format!(
+            "Failed to fetch archive page data: {} {}",
             resp.status(),
             resp.status_text()
         ));
