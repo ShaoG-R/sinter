@@ -1,4 +1,5 @@
 use gloo_net::http::Request;
+use gloo_storage::Storage;
 use leptos::prelude::*;
 use sinter_core::{PageData, Post, SiteMetaData};
 use std::collections::HashMap;
@@ -44,39 +45,43 @@ impl ThemeManager {
         // 1. Get the requested theme
         let theme = self.get_theme(name)?;
 
-        // 2. Load CSS dynamically
+        // 2. Load CSS dynamically with Double Buffering
         let window = window().expect("no global `window` exists");
         let document = window.document().expect("should have a document on window");
-
-        let link_id = "theme-css";
-        let link_el = document.get_element_by_id(link_id);
+        let head = document.head().expect("document should have a head");
 
         let url = format!("/themes/{}/default.css", name);
         leptos::logging::log!("Switching theme CSS to: {}", url);
 
-        if let Some(link) = link_el {
-            match link.dyn_into::<HtmlLinkElement>() {
-                Ok(link) => {
-                    link.set_href(&url);
-                }
-                Err(_) => {
-                    leptos::logging::error!(
-                        "Element with id 'theme-css' is not an HtmlLinkElement!"
-                    );
-                }
+        // Create new link
+        let new_link = document
+            .create_element("link")
+            .expect("failed to create link element");
+        let new_link: HtmlLinkElement = new_link.unchecked_into();
+        new_link.set_rel("stylesheet");
+        new_link.set_href(&url);
+
+        // Setup onload handler to swap links
+        let doc_clone = document.clone();
+        let new_link_clone = new_link.clone();
+
+        let callback = wasm_bindgen::closure::Closure::<dyn Fn()>::new(move || {
+            // Find and remove old link
+            let old_link = doc_clone.get_element_by_id("theme-css");
+            if let Some(old) = old_link {
+                old.remove();
             }
-        } else {
-            let head = document.head().expect("document should have a head");
-            let link = document
-                .create_element("link")
-                .expect("failed to create link element");
-            let link: HtmlLinkElement = link.unchecked_into();
-            link.set_rel("stylesheet");
-            link.set_href(&url);
-            link.set_id(link_id);
-            if let Err(e) = head.append_child(&link) {
-                leptos::logging::error!("Failed to append child: {:?}", e);
-            }
+            // Adopt the ID for the new link
+            new_link_clone.set_id("theme-css");
+        });
+
+        new_link.set_onload(Some(callback.as_ref().unchecked_ref()));
+        // We need to forget the closure so it lives long enough for the event to fire
+        // Ideally we'd manage this lifecycle better but for a top-level theme switch this is acceptable
+        callback.forget();
+
+        if let Err(e) = head.append_child(&new_link) {
+            leptos::logging::error!("Failed to append child: {:?}", e);
         }
 
         // 3. Return the theme so the app can update its state
@@ -129,8 +134,13 @@ pub struct GlobalState {
 
 impl GlobalState {
     pub fn new(manager: Arc<ThemeManager>, initial_theme_name: &str) -> Self {
+        // Try to get theme from local storage
+        let storage_theme: Option<String> = gloo_storage::LocalStorage::get("sinter_theme").ok();
+        let theme_name = storage_theme.as_deref().unwrap_or(initial_theme_name);
+
         let theme_instance = manager
-            .switch_theme(initial_theme_name)
+            .get_theme(theme_name)
+            .or_else(|| manager.get_theme(initial_theme_name))
             .expect("Initial theme not found");
 
         Self {
@@ -143,6 +153,7 @@ impl GlobalState {
     pub fn switch_theme(&self, name: &str) {
         if let Some(new_theme) = self.manager.switch_theme(name) {
             self.theme.set(new_theme);
+            let _ = gloo_storage::LocalStorage::set("sinter_theme", name);
         } else {
             leptos::logging::warn!("Theme '{}' not found", name);
         }
@@ -151,8 +162,8 @@ impl GlobalState {
 
 // Hooks
 
-pub fn use_site_meta() -> Option<Result<SiteMetaData, String>> {
-    use_context::<GlobalState>().and_then(|state| state.site_meta.get())
+pub fn use_site_meta() -> Option<LocalResource<Result<SiteMetaData, String>>> {
+    use_context::<GlobalState>().map(|state| state.site_meta)
 }
 
 // Ensure you provide this context in your page component!

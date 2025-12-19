@@ -30,7 +30,7 @@ pub fn Home() -> impl IntoView {
     provide_context(PageDataContext(page_data_resource));
 
     view! {
-        {move || state.theme.get().render_home()}
+        {state.theme.get_untracked().render_home()}
     }
 }
 
@@ -68,9 +68,9 @@ pub fn PostView() -> impl IntoView {
     });
 
     view! {
-        <Suspense fallback=move || theme_signal.get().render_post_loading()>
+        <Suspense fallback=move || theme_signal.get_untracked().render_post_loading()>
             {move || {
-                let theme = theme_signal.get();
+                let theme = theme_signal.get_untracked();
                 match post_resource.get() {
                     Some(Some(post)) => theme.render_post(post),
                     Some(None) => theme.render_post_not_found(),

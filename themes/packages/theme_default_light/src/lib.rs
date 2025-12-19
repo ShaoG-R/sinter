@@ -142,7 +142,7 @@ impl Theme for DefaultLightTheme {
          view! {
             <Suspense fallback=move || theme_fallback.render_loading()>
                 {move || {
-                    let site_meta_res = site_meta_r.clone().and_then(|r| r.ok());
+                    let site_meta_res = site_meta_r.and_then(|r| r.get()).and_then(|r| r.ok());
                     let page_data_res = page_data_r.clone().and_then(|r| r.get().and_then(|res| res.ok()));
 
                     match (site_meta_res, page_data_res) {

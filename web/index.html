@@ -5,7 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sinter</title>
-    <link id="theme-css" rel="stylesheet" href="/themes/default/default.css" />
+    <script>
+        (function () {
+            var theme = 'default';
+            try {
+                var stored = localStorage.getItem('sinter_theme');
+                if (stored) theme = stored;
+            } catch (e) { }
+            document.write('<link id="theme-css" rel="stylesheet" href="/themes/' + theme + '/default.css" />');
+        })();
+    </script>
     <link data-trunk rel="copy-dir" href="themes" />
     <link data-trunk rel="copy-dir" href="sinter_data" />
 </head>
