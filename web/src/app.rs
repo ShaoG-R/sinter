@@ -1,21 +1,8 @@
 use leptos::prelude::*;
-use leptos_router::{
-    components::{Route, Router, Routes},
-    params::Params,
-    *,
-};
 
 use crate::components::Layout;
-use crate::pages::ArchivePostView;
-use crate::pages::Archives;
-use crate::pages::Home;
-use crate::pages::PostView;
-
-#[derive(PartialEq, Params, Clone, Debug)]
-pub struct PostParams {
-    pub slug: Option<String>,
-}
-
+use crate::pages::{ArchivePostView, Archives, Home, PostView};
+use crate::router::{Route, use_router};
 use sinter_theme_sdk::GlobalState;
 use std::sync::Arc;
 
@@ -29,21 +16,24 @@ pub fn App() -> impl IntoView {
     // 2. Provide the state as global context
     provide_context(GlobalState::new(manager, "default"));
 
+    // 3. Use Simple Router
+    let (route, page) = use_router();
+
     view! {
-        <Router>
-            <Layout>
-                <Suspense fallback=move || {
-                    let state = use_context::<GlobalState>().expect("GlobalState missing");
-                    state.theme.get_untracked().render_loading()
-                }>
-                    <Routes fallback=|| view! { "404 - Not Found" }>
-                        <Route path=path!("/") view=Home />
-                        <Route path=path!("/archives") view=Archives />
-                        <Route path=path!("/posts/:slug") view=PostView />
-                        <Route path=path!("/archives/posts/:slug") view=ArchivePostView />
-                    </Routes>
-                </Suspense>
-            </Layout>
-        </Router>
+        <Layout>
+            {move || {
+                match route.get() {
+                    Route::Home => view! { <Home page=page /> }.into_any(),
+                    Route::Archives => view! { <Archives page=page /> }.into_any(),
+                    Route::Post(slug) => view! {
+                        <PostView slug=Signal::derive(move || slug.clone()) />
+                    }.into_any(),
+                    Route::ArchivePost(slug) => view! {
+                        <ArchivePostView slug=Signal::derive(move || slug.clone()) />
+                    }.into_any(),
+                    Route::NotFound => view! { "404 - Not Found" }.into_any(),
+                }
+            }}
+        </Layout>
     }
 }

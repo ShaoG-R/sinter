@@ -1,27 +1,14 @@
-use crate::app::PostParams;
-
 use leptos::prelude::*;
-use leptos_router::hooks::{use_params, use_query_map};
 use sinter_core::Post;
 use sinter_theme_sdk::{PageDataContext, fetch_archive_page_data, fetch_json, fetch_page_data};
 
 #[component]
-pub fn Home() -> impl IntoView {
+pub fn Home(#[prop(into)] page: Signal<usize>) -> impl IntoView {
     let state = use_context::<sinter_theme_sdk::GlobalState>().expect("缺少 GlobalState");
-    let query = use_query_map();
-
-    // 获取当前页码
-    let page = move || {
-        query
-            .get()
-            .get("page")
-            .and_then(|p| p.parse::<usize>().ok())
-            .unwrap_or(1)
-    };
 
     // 创建页面数据资源
     let page_data_resource = LocalResource::new(move || {
-        let page_num = page();
+        let page_num = page.get();
         async move { fetch_page_data(page_num).await }
     });
 
@@ -34,22 +21,12 @@ pub fn Home() -> impl IntoView {
 }
 
 #[component]
-pub fn Archives() -> impl IntoView {
+pub fn Archives(#[prop(into)] page: Signal<usize>) -> impl IntoView {
     let state = use_context::<sinter_theme_sdk::GlobalState>().expect("缺少 GlobalState");
-    let query = use_query_map();
-
-    // 获取当前页码
-    let page = move || {
-        query
-            .get()
-            .get("page")
-            .and_then(|p| p.parse::<usize>().ok())
-            .unwrap_or(1)
-    };
 
     // 创建页面数据资源 (Archives)
     let page_data_resource = LocalResource::new(move || {
-        let page_num = page();
+        let page_num = page.get();
         async move { fetch_archive_page_data(page_num).await }
     });
 
@@ -62,8 +39,7 @@ pub fn Archives() -> impl IntoView {
 }
 
 #[component]
-pub fn PostView() -> impl IntoView {
-    let params = use_params::<PostParams>();
+pub fn PostView(#[prop(into)] slug: Signal<String>) -> impl IntoView {
     let state = use_context::<sinter_theme_sdk::GlobalState>().expect("缺少 GlobalState");
 
     // 捕获 state 以便在闭包中使用
@@ -71,15 +47,11 @@ pub fn PostView() -> impl IntoView {
 
     // 根据 slug 获取文章详情
     let post_resource = LocalResource::new(move || {
-        let slug = params
-            .get()
-            .map(|p| p.slug)
-            .unwrap_or(None)
-            .unwrap_or_default();
+        let current_slug = slug.get();
 
         async move {
             // 直接构建 URL 请求文章数据
-            let url = format!("/sinter_data/posts/{}.json", slug);
+            let url = format!("/sinter_data/posts/{}.json", current_slug);
 
             match fetch_json::<Post>(&url).await {
                 Ok(post) => Some(post),
@@ -103,21 +75,16 @@ pub fn PostView() -> impl IntoView {
 }
 
 #[component]
-pub fn ArchivePostView() -> impl IntoView {
-    let params = use_params::<PostParams>();
+pub fn ArchivePostView(#[prop(into)] slug: Signal<String>) -> impl IntoView {
     let state = use_context::<sinter_theme_sdk::GlobalState>().expect("缺少 GlobalState");
 
     let theme_signal = state.theme;
 
     let post_resource = LocalResource::new(move || {
-        let slug = params
-            .get()
-            .map(|p| p.slug)
-            .unwrap_or(None)
-            .unwrap_or_default();
+        let current_slug = slug.get();
 
         async move {
-            let url = format!("/sinter_data/archives/{}.json", slug);
+            let url = format!("/sinter_data/archives/{}.json", current_slug);
 
             match fetch_json::<Post>(&url).await {
                 Ok(post) => Some(post),

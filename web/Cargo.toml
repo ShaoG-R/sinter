@@ -8,10 +8,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 leptos = { version = "0.8", features = ["csr"] }
-leptos_router = "0.8"
 sinter_core = { path = "../core" }
 wasm-bindgen = "0.2"
 sinter_theme_sdk = { path = "../theme_sdk" }
 sinter_themes = { path = "../themes" }
 lite-alloc = "0.1.0"
+web-sys = { version = "0.3", features = ["HtmlAnchorElement", "Url", "Location", "History", "Window", "Document", "Element", "Event", "EventTarget", "UrlSearchParams"] }
 
