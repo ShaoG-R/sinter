@@ -1924,6 +1924,7 @@ dependencies = [
 name = "sinter_theme_sdk"
 version = "0.1.0"
 dependencies = [
+ "futures",
  "gloo-net",
  "gloo-storage",
  "leptos",

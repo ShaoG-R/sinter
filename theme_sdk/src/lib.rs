@@ -41,7 +41,7 @@ impl ThemeManager {
         self.themes.keys().cloned().collect()
     }
 
-    pub fn switch_theme(&self, name: &str) -> Option<Arc<dyn Theme>> {
+    pub async fn switch_theme(&self, name: &str) -> Option<Arc<dyn Theme>> {
         // 1. Get the requested theme
         let theme = self.get_theme(name)?;
 
@@ -61,11 +61,16 @@ impl ThemeManager {
         new_link.set_rel("stylesheet");
         new_link.set_href(&url);
 
+        // Prepare async channel to wait for load
+        let (tx, rx) = futures::channel::oneshot::channel();
+        // Wrap tx in RefCell to use in FnMut (even though it's called once)
+        let tx = std::cell::RefCell::new(Some(tx));
+
         // Setup onload handler to swap links
         let doc_clone = document.clone();
         let new_link_clone = new_link.clone();
 
-        let callback = wasm_bindgen::closure::Closure::<dyn Fn()>::new(move || {
+        let callback = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
             // Find and remove old link
             let old_link = doc_clone.get_element_by_id("theme-css");
             if let Some(old) = old_link {
@@ -73,16 +78,23 @@ impl ThemeManager {
             }
             // Adopt the ID for the new link
             new_link_clone.set_id("theme-css");
+
+            // Notify completion
+            if let Some(sender) = tx.borrow_mut().take() {
+                let _ = sender.send(());
+            }
         });
 
         new_link.set_onload(Some(callback.as_ref().unchecked_ref()));
-        // We need to forget the closure so it lives long enough for the event to fire
-        // Ideally we'd manage this lifecycle better but for a top-level theme switch this is acceptable
-        callback.forget();
 
         if let Err(e) = head.append_child(&new_link) {
             leptos::logging::error!("Failed to append child: {:?}", e);
+            return None;
         }
+
+        // Wait for CSS to load
+        // The callback is held by `callback` variable, which lives until this await finishes
+        let _ = rx.await;
 
         // 3. Return the theme so the app can update its state
         Some(theme)
@@ -151,12 +163,18 @@ impl GlobalState {
     }
 
     pub fn switch_theme(&self, name: &str) {
-        if let Some(new_theme) = self.manager.switch_theme(name) {
-            self.theme.set(new_theme);
-            let _ = gloo_storage::LocalStorage::set("sinter_theme", name);
-        } else {
-            leptos::logging::warn!("Theme '{}' not found", name);
-        }
+        let manager = self.manager.clone();
+        let theme_signal = self.theme;
+        let name_owned = name.to_string();
+
+        leptos::task::spawn_local(async move {
+            if let Some(new_theme) = manager.switch_theme(&name_owned).await {
+                theme_signal.set(new_theme);
+                let _ = gloo_storage::LocalStorage::set("sinter_theme", &name_owned);
+            } else {
+                leptos::logging::warn!("Theme '{}' not found", &name_owned);
+            }
+        });
     }
 }
 
