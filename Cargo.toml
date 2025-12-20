@@ -1,12 +1,11 @@
 [workspace]
 members = [
-    "core",
-    "cli",
-    "web",
-    "theme_sdk",
-    "themes",
+    "sinter_core",
+    "sinter_cli",
+    "sinter_web",
+    "sinter_theme_sdk",
+    "sinter_themes",
     "sinter_ui",
-    "sinter_ui/examples/counter",
 ]
 resolver = "2"
 

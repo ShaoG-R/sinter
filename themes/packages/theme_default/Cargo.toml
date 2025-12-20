@@ -1,9 +1,0 @@
-[package]
-name = "sinter_theme_default"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-sinter_core = { path = "../../../core" }
-sinter_theme_sdk = { path = "../../../theme_sdk" }
-sinter_ui = { path = "../../../sinter_ui" }

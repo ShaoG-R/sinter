@@ -33,7 +33,7 @@ struct HomeSection {
 pub fn compile(
     posts_dir: &Path,
     archives_dir: &Path,
-    output_dir: &Path,
+    data_output_dir: &Path,
     config_path: &Path,
 ) -> Result<()> {
     info!("Starting compilation...");
@@ -93,7 +93,7 @@ pub fn compile(
     write_site_metadata(posts.len(), &config, posts_per_page, temp_path)?;
 
     // 5. Deployment
-    deploy_to_output(temp_path, output_dir)?;
+    deploy_to_output(temp_path, data_output_dir)?;
 
     info!("Compilation finished successfully!");
     Ok(())

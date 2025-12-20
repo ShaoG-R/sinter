@@ -1,5 +1,5 @@
-use sinter_theme_default::DefaultTheme;
-use sinter_theme_default_light::DefaultLightTheme;
+use sinter_default_theme::DefaultTheme;
+use sinter_default_theme_light::DefaultLightTheme;
 use sinter_theme_sdk::ThemeManager;
 use std::sync::Arc;
 

@@ -3,7 +3,7 @@ mod themes;
 
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tracing::{Level, info};
 use tracing_subscriber::FmtSubscriber;
 
@@ -30,9 +30,9 @@ struct BuildArgs {
     #[arg(short, long = "archives", default_value = "./archives")]
     archives_dir: PathBuf,
 
-    /// Output directory
-    #[arg(short, long, default_value = "./web/sinter_data")]
-    output: PathBuf,
+    /// Data output directory
+    #[arg(short, long, default_value = "./sinter_web/sinter_data")]
+    data_output: PathBuf,
 
     /// Enable verbose logging
     #[arg(short, long)]
@@ -43,8 +43,12 @@ struct BuildArgs {
     config: PathBuf,
 
     /// Path to themes configuration
-    #[arg(long, default_value = "themes/themes.toml")]
+    #[arg(long, default_value = "./sinter_themes/themes.toml")]
     themes_config: PathBuf,
+
+    /// Themes output directory
+    #[arg(long, default_value = "./sinter_web/themes")]
+    themes_output: PathBuf,
 }
 
 fn main() -> Result<()> {
@@ -66,9 +70,8 @@ fn main() -> Result<()> {
             info!("Starting Sinter compilation...");
 
             // Process themes
-            let web_themes_dir = Path::new("web/themes");
             if args.themes_config.exists() {
-                themes::process_themes(&args.themes_config, web_themes_dir)?;
+                themes::process_themes(&args.themes_config, &args.themes_output)?;
             } else {
                 info!(
                     "Themes configuration not found at {:?}, skipping theme build.",
@@ -78,13 +81,13 @@ fn main() -> Result<()> {
 
             info!("Posts directory: {:?}", args.posts_dir);
             info!("Archives directory: {:?}", args.archives_dir);
-            info!("Output directory: {:?}", args.output);
+            info!("Data output directory: {:?}", args.data_output);
 
             // Implement core compilation logic here
             compiler::compile(
                 &args.posts_dir,
                 &args.archives_dir,
-                &args.output,
+                &args.data_output,
                 &args.config,
             )?;
         }

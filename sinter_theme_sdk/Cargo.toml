@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sinter_core = { path = "../core" }
+sinter_core = { path = "../sinter_core" }
 sinter_ui = { path = "../sinter_ui" }
 web-sys = { version = "0.3", features = ["Document", "Element", "HtmlLinkElement", "Window", "HtmlHeadElement", "Storage", "Response"] }
 js-sys = "0.3"
