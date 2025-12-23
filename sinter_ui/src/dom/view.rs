@@ -27,23 +27,7 @@ impl View for Element {
 // 2. 静态文本 (String, &str)
 impl View for String {
     fn mount(self, parent: &Node) {
-        let window = match web_sys::window().ok_or_else(|| SinterError::Dom("No window".into())) {
-            Ok(w) => w,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
-        let document = match window
-            .document()
-            .ok_or_else(|| SinterError::Dom("No document".into()))
-        {
-            Ok(d) => d,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
+        let document = crate::dom::document();
         let node = document.create_text_node(&self);
         if let Err(e) = parent.append_child(&node).map_err(SinterError::from) {
             crate::error::handle_error(e);
@@ -53,23 +37,7 @@ impl View for String {
 
 impl View for &str {
     fn mount(self, parent: &Node) {
-        let window = match web_sys::window().ok_or_else(|| SinterError::Dom("No window".into())) {
-            Ok(w) => w,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
-        let document = match window
-            .document()
-            .ok_or_else(|| SinterError::Dom("No document".into()))
-        {
-            Ok(d) => d,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
+        let document = crate::dom::document();
         let node = document.create_text_node(self);
         if let Err(e) = parent.append_child(&node).map_err(SinterError::from) {
             crate::error::handle_error(e);
@@ -83,20 +51,7 @@ macro_rules! impl_view_for_primitive {
         $(
             impl View for $t {
                 fn mount(self, parent: &Node) {
-                    let window = match web_sys::window().ok_or_else(|| SinterError::Dom("No window".into())) {
-                        Ok(w) => w,
-                        Err(e) => {
-                            crate::error::handle_error(e);
-                            return;
-                        }
-                    };
-                    let document = match window.document().ok_or_else(|| SinterError::Dom("No document".into())) {
-                        Ok(d) => d,
-                        Err(e) => {
-                            crate::error::handle_error(e);
-                            return;
-                        }
-                    };
+                    let document = crate::dom::document();
                     let node = document.create_text_node(&self.to_string());
                     if let Err(e) = parent.append_child(&node).map_err(SinterError::from) {
                         crate::error::handle_error(e);
@@ -118,23 +73,7 @@ where
     S: Display + 'static,
 {
     fn mount(self, parent: &Node) {
-        let window = match web_sys::window().ok_or_else(|| SinterError::Dom("No window".into())) {
-            Ok(w) => w,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
-        let document = match window
-            .document()
-            .ok_or_else(|| SinterError::Dom("No document".into()))
-        {
-            Ok(d) => d,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
+        let document = crate::dom::document();
         let node = document.create_text_node("");
         if let Err(e) = parent.append_child(&node).map_err(SinterError::from) {
             crate::error::handle_error(e);
@@ -154,23 +93,7 @@ where
     T: Display + Clone + 'static,
 {
     fn mount(self, parent: &Node) {
-        let window = match web_sys::window().ok_or_else(|| SinterError::Dom("No window".into())) {
-            Ok(w) => w,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
-        let document = match window
-            .document()
-            .ok_or_else(|| SinterError::Dom("No document".into()))
-        {
-            Ok(d) => d,
-            Err(e) => {
-                crate::error::handle_error(e);
-                return;
-            }
-        };
+        let document = crate::dom::document();
         // 1. 创建占位符
         let node = document.create_text_node("");
         if let Err(e) = parent.append_child(&node).map_err(SinterError::from) {

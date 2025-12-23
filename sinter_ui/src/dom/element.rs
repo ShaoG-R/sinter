@@ -15,8 +15,7 @@ pub struct Element {
 
 impl Element {
     pub fn new(tag: &str) -> Self {
-        let window = web_sys::window().expect("No global window");
-        let document = window.document().expect("No document");
+        let document = crate::dom::document();
         let dom_element = document
             .create_element(tag)
             .expect("Failed to create element");
@@ -24,8 +23,7 @@ impl Element {
     }
 
     pub fn new_svg(tag: &str) -> Self {
-        let window = web_sys::window().expect("No global window");
-        let document = window.document().expect("No document");
+        let document = crate::dom::document();
         let dom_element = document
             .create_element_ns(Some("http://www.w3.org/2000/svg"), tag)
             .expect("Failed to create SVG element");

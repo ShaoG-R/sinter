@@ -51,15 +51,18 @@ impl AttributeValue for bool {
 impl<F, S> AttributeValue for F
 where
     F: Fn() -> S + 'static,
-    S: Into<String>,
+    S: AsRef<str>,
 {
     fn apply(self, el: &WebElem, name: &str) {
         let el = el.clone();
         let name = name.to_string();
         // 自动创建副作用
         create_effect(move || {
-            let value = self().into();
-            if let Err(e) = el.set_attribute(&name, &value).map_err(SinterError::from) {
+            let value = self();
+            if let Err(e) = el
+                .set_attribute(&name, value.as_ref())
+                .map_err(SinterError::from)
+            {
                 crate::error::handle_error(e);
             }
         });
@@ -69,7 +72,7 @@ where
 // 3. 直接 Signal 支持
 impl<T> AttributeValue for ReadSignal<T>
 where
-    T: Into<String> + Clone + 'static,
+    T: AsRef<str> + Clone + 'static,
 {
     fn apply(self, el: &WebElem, name: &str) {
         let el = el.clone();
@@ -78,8 +81,10 @@ where
         let signal = self;
         create_effect(move || {
             if let Some(v) = signal.get() {
-                let value = v.into();
-                if let Err(e) = el.set_attribute(&name, &value).map_err(SinterError::from) {
+                if let Err(e) = el
+                    .set_attribute(&name, v.as_ref())
+                    .map_err(SinterError::from)
+                {
                     crate::error::handle_error(e);
                 }
             }
