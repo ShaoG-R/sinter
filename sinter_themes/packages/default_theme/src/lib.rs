@@ -433,7 +433,7 @@ fn render_theme_switcher() -> AnyView {
 }
 
 fn render_footer() -> Element {
-    footer().class("footer footer-center p-10 bg-black/20 text-white/70 backdrop-blur-md border-t border-white/5 mt-auto")
+    footer().class("footer footer-center p-10 bg-black/20 text-white/70 backdrop-blur-md border-t border-white/5 mt-auto shrink-0")
         .child(
             aside().child((
                 p().class("font-bold text-lg text-white").child((
