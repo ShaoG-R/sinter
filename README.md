@@ -6,6 +6,12 @@
 >
 > Sinter 是一个基于 **Rust** 和 **WebAssembly** 构建的全栈式静态站点生成系统。它不是传统的 SSG，而是一个**内容编译器**，将 Markdown 和资源编译为极其高效的单页应用 (SPA)。
 
+---
+
+## 🔗 在线文档
+
+* 官网文档: https://shaog-r.github.io/sinter/
+
 ## 🌟 核心特性 (Key Features)
 
 ### 1. 🚀 极致性能 (Extreme Performance)
